@@ -83,12 +83,12 @@ allLevels :: [Level]
 allLevels =
   [ level4
   , level6
-  , level7
-  , level8
-  , level9_1
-  , level9_3
-  , level17
-  , level19
+  -- , level7
+  -- , level8
+  -- , level9_1
+  -- , level9_3
+  -- , level17
+  -- , level19
   ]
 
 -- | Author: Viacheslav Goreev
@@ -128,7 +128,7 @@ level2 = Level "Viacheslav Goreev"
 -- | Author: Kamil Alimov
 level4 :: Level
 level4 = Level "Kamil Alimov"
-  (Coords (-1) 7) newLevelMap [Blue, Red, Purple]
+  (Coords (-1) 7) newLevelMap [Blue, Red, Orange, Purple]
   where
     newLevelMap :: Coords -> Tile
     newLevelMap (Coords i j)
@@ -203,7 +203,7 @@ level6 = Level "Aliya Zagidullina"
 
 level7 :: Level
 level7 = Level "Igor Vakhula"
-  (Coords (-9) (-9)) (tileMap . toTupleCoords) []
+  (Coords (-9) (-9)) (tileMap . toTupleCoords)  [Pink, Brown, Blue]
   where
     -- | tile map defining
     tileMap :: TupleCoords -> Tile
@@ -230,7 +230,7 @@ level7 = Level "Igor Vakhula"
 
 level8 :: Level
 level8 = Level "Pavel Vybornov"
-  (Coords 1 1) (customMap . toTupleCoords) []
+  (Coords 1 1) (customMap . toTupleCoords) [Blue, Red, Orange, Purple]
   where
     -- | Used to set the tiles on the map
     customMap :: TupleCoords -> Tile

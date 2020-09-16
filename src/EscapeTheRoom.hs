@@ -1,4 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE DeriveFunctor #-}
 {-# OPTIONS_GHC -Wall -Wname-shadowing #-}
 module EscapeTheRoom where
 
@@ -72,8 +73,7 @@ isLevelComplete (Game playerCoords (Level _ _ levelMap _))
     currentTile = levelMap playerCoords
 
 
-data WithLevel world = WithLevel world Int
-
+data WithLevel world = WithLevel world Int | GameFinished  deriving (Functor) 
 withManyLevels 
   :: [level] -- ˆ A list of levels.
   -> (level -> world) -- ˆ Initialise world for level.
@@ -84,18 +84,17 @@ withManyLevels levels initLevelMap isLevelComplete activityOf initialState handl
   = activityOf initialState' handleEvent' drawGame'
     where
       initialState' = WithLevel initialState 0
-      handleEvent' event (WithLevel game currentLevelIdx)
-        | isLevelComplete game
--- withManyLevels [level] initLevelMap isLevelComplete activityOf initialState handleEvent drawGame 
---   = withNextLevel level initLevelMap isLevelComplete activityOf initialState handleEvent drawGame
--- withManyLevels (nextLevel:rest) initLevelMap isLevelComplete activityOf initialState handleEvent drawGame 
---   -- = withNextLevel nextLevel initLevelMap isLevelComplete (withManyLevels rest initLevelMap isLevelComplete) initialState handleEvent drawGame 
---   = withNextLevel nextLevel initLevelMap isLevelComplete (withManyLevels rest initLevelMap isLevelComplete) initialState handleEvent drawGame 
---   -- = withManyLevels rest initLevelMap isLevelComplete (withNextLevel nextLevel initLevelMap isLevelComplete activityOf initialState handleEvent drawGame) -- initialState handleEvent drawGame 
+      handleEvent' event state@(WithLevel game currentLevelIdx)
+        | isLevelComplete game && currentLevelIdx == length levels - 1 = GameFinished
+        | isLevelComplete game = WithLevel (initLevelMap (levels !! (currentLevelIdx + 1))) (currentLevelIdx + 1)
+        | otherwise = fmap (handleEvent event) state
+
+      drawGame' (WithLevel game _) = drawGame game
+      drawGame' GameFinished = scaled 2 2 (lettering "Congratulations!")
+        <> colored (lighter 0.5 brown) (solidRectangle 100 100)
 
 run :: IO ()
 run = withManyLevels allLevels initLevelMap isLevelComplete (withStartScreen (withReset activityOf)) initialState handleEvent drawGame
--- run = withNextLevel level6 initLevelMap isLevelComplete (withNextLevel level4 initLevelMap isLevelComplete (withStartScreen (withReset activityOf))) initialState handleEvent drawGame
   where
     initialState = initLevelMap firstLevel
 
