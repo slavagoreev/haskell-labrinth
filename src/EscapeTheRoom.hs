@@ -71,47 +71,31 @@ isLevelComplete (Game playerCoords (Level _ _ levelMap _))
   where
     currentTile = levelMap playerCoords
 
--- | Interaction state for 'world' with level.
-data WithLevel level world = WithLevel world level
 
-
-withNextLevel 
-  :: level 
-  -> (level -> world) -- ˆ Initialise world for level.
-  -> (world -> Bool) -- ˆ Is this level complete?
-  -> ActivityOf (WithLevel level world) -- ˆ 'ActivityOf'.
-  -> ActivityOf world
-withNextLevel nextLevel initLevelMap isLevelComplete activityOf initialState handleEvent drawGame 
-  = activityOf (WithLevel initialState nextLevel) handleEvent' drawGame'
-    where
-      handleEvent' event (WithLevel game level) 
-        | isLevelComplete game = WithLevel (handleEvent event (initLevelMap nextLevel)) nextLevel
-        | otherwise = WithLevel (handleEvent event game) level
-      drawGame' (WithLevel game level) = drawGame game
-
+data WithLevel world = WithLevel world Int
 
 withManyLevels 
   :: [level] -- ˆ A list of levels.
   -> (level -> world) -- ˆ Initialise world for level.
   -> (world -> Bool) -- ˆ Is this level complete?
-  -> ActivityOf (WithLevel level world) -- ˆ 'ActivityOf'.
+  -> ActivityOf (WithLevel world) -- ˆ 'ActivityOf'.
   -> ActivityOf world
-withManyLevels [] initLevelMap isLevelComplete activityOf initialState handleEvent drawGame = activityOf initialState handleEvent drawGame
---   = activityOf initialState handleEvent' drawGame'
---     where
---       handleEvent' event (WithLevel game level) 
---         | isLevelComplete game = WithLevel (handleEvent event (initLevelMap nextLevel)) nextLevel
---         | otherwise = WithLevel (handleEvent event game) level
---       drawGame' (WithLevel game level) = drawGame game
--- withManyLevels [] activityOf initialState handleEvent drawGame = activityOf initialState handleEvent drawGame
--- withManyLevels ((level, initLevelMap, isLevelComplete):levels) activityOf initialState handleEvent drawGame 
--- = withNextLevel level initLevelMap isLevelComplete (withManyLevels levels activityOf)
-
-withManyLevels (nextLevel:rest) initLevelMap isLevelComplete activityOf initialState handleEvent drawGame 
-  = withNextLevel nextLevel initLevelMap isLevelComplete (withManyLevels rest initLevelMap isLevelComplete)
+withManyLevels levels initLevelMap isLevelComplete activityOf initialState handleEvent drawGame 
+  = activityOf initialState' handleEvent' drawGame'
+    where
+      initialState' = WithLevel initialState 0
+      handleEvent' event (WithLevel game currentLevelIdx)
+        | isLevelComplete game
+-- withManyLevels [level] initLevelMap isLevelComplete activityOf initialState handleEvent drawGame 
+--   = withNextLevel level initLevelMap isLevelComplete activityOf initialState handleEvent drawGame
+-- withManyLevels (nextLevel:rest) initLevelMap isLevelComplete activityOf initialState handleEvent drawGame 
+--   -- = withNextLevel nextLevel initLevelMap isLevelComplete (withManyLevels rest initLevelMap isLevelComplete) initialState handleEvent drawGame 
+--   = withNextLevel nextLevel initLevelMap isLevelComplete (withManyLevels rest initLevelMap isLevelComplete) initialState handleEvent drawGame 
+--   -- = withManyLevels rest initLevelMap isLevelComplete (withNextLevel nextLevel initLevelMap isLevelComplete activityOf initialState handleEvent drawGame) -- initialState handleEvent drawGame 
 
 run :: IO ()
 run = withManyLevels allLevels initLevelMap isLevelComplete (withStartScreen (withReset activityOf)) initialState handleEvent drawGame
+-- run = withNextLevel level6 initLevelMap isLevelComplete (withNextLevel level4 initLevelMap isLevelComplete (withStartScreen (withReset activityOf))) initialState handleEvent drawGame
   where
     initialState = initLevelMap firstLevel
 
